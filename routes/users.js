@@ -5,11 +5,17 @@ const authenticate = require('../authenticate');
 
 const router = express.Router();
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-    res.send('respond with a resource');
+/* GET users listing */
+router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
+    User.find()
+            .then((users) => {
+                res.statusCode = 200;
+                res.json(users);
+            })
+            .catch((err) => next(err));
 });
 
+/* POST users signup */
 router.post('/signup', (req, res) => {
     User.register(
         new User({username: req.body.username}),
@@ -43,6 +49,8 @@ router.post('/signup', (req, res) => {
         }
     );
 });
+
+/* POST users login */
 router.post('/login', passport.authenticate('local'), (req, res) => {
     const token = authenticate.getToken({_id: req.user._id});
     res.statusCode = 200;
@@ -50,6 +58,7 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
     res.json({success: true, token: token, status: 'You are successfully logged in!'});
 });
 
+/* GET users logout */
 router.get('/logout', (req, res, next) => {
     if (req.session) {
         req.session.destroy();
