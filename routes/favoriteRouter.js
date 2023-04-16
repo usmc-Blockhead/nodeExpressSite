@@ -86,7 +86,7 @@ favoriteRouter
             `GET operation not supported on /favorites/${req.params.campsiteId}`
         );
     })
-    .post(cors.corsWithOptions, authenticate.verifyUser, (req, res) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         Favorite.findOne({ user: req.user._id }).then((favorites) => {
             if (favorites) {
                 if (!favorites.campsites.includes(req.params.campsiteId)) {
@@ -94,6 +94,9 @@ favoriteRouter
                     favorites
                         .save()
                         .then((favorite) => {
+                            console.log("Favorite Added", favorite);
+                            res.statusCode = 200;
+                            res.setHeader("Content-Type", "application/json");
                             res.json(favorite);
                         })
                         .catch((err) => next(err));
@@ -104,7 +107,7 @@ favoriteRouter
             } else {
                 Favorite.create({
                     user: req.user._id,
-                    campsites: [req.params.campsieID],
+                    campsites: [req.params.campsiteId],
                 })
                     .then((favorite) => {
                         console.log("Favorite created ", favorite);
